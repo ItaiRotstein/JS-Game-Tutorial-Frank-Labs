@@ -35,7 +35,7 @@ window.addEventListener('load', function () {
             }
             this.enemies.forEach(enemy => {
                 enemy.update(deltaTime)
-                if (enemy.markedForDeletion) this.enemies.splice(this.enemies.indexOf(enemy), 1)        
+                if (enemy.markedForDeletion) this.enemies.filter(e => e != enemy)        
             })
         }
         draw(context) {
