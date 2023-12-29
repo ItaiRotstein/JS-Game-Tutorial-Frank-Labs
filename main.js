@@ -7,14 +7,14 @@ import { UI } from './UI.js'
 window.addEventListener('load', function () {
     const canvas = this.document.getElementById('canvas1')
     const ctx = canvas.getContext('2d')
-    canvas.width = 500
+    canvas.width = 900
     canvas.height = 500
 
     class Game {
         constructor(width, height) {
             this.width = width
             this.height = height
-            this.groundMargin = 80
+            this.groundMargin = 50
             this.speed = 0
             this.maxSpeed = 6
             this.background = new Background(this)
@@ -25,16 +25,26 @@ window.addEventListener('load', function () {
             this.particles = []
             this.maxParticles = 50
             this.collisions = []
+            this.floatingMessages = []
             this.enemyTimer = 0
             this.enemyInterval = 1000
             this.debug = false
             this.score = 0
             this.fontColor = 'black'
+            this.time = 10000
+            // this.maxTime = 10000
+            this.gameOver = false
+            this.lives = 5
             this.player.currentState = this.player.states[0]
             this.player.currentState.enter()
         }
         update(deltaTime) {
+            this.time -= deltaTime
+            //game over
+            if (this.time < deltaTime || this.lives === 0) this.gameOver = true
+            //handle background
             this.background.update()
+            // handle player
             this.player.update(this.input.keys, deltaTime)
             //handleEnemies
             if (this.enemyTimer > this.enemyInterval) {
@@ -45,21 +55,27 @@ window.addEventListener('load', function () {
             }
             this.enemies.forEach((enemy, index) => {
                 enemy.update(deltaTime)
-                if (enemy.markedForDeletion) this.enemies.splice(index, 1)
+            })
+            //handle floating messages
+            this.floatingMessages.forEach(message => {
+                message.update()
             })
             //handle particles
-            this.particles.forEach((particle, index) => {
+            this.particles.forEach(particle => {
                 particle.update()
-                if (particle.markedForDeletion) this.particles.splice(index, 1)
             })
-            if (this.particles.length > 50) {
-                this.particles = this.particles.slice(0, this.maxParticles)
+            if (this.particles.length > this.maxParticles) {
+                this.particles.length = this.maxParticles
             }
             //handle collision sprites
-            this.collisions.forEach((collision, index) => {
+            this.collisions.forEach(collision => {
                 collision.update(deltaTime)
-                if (collision.markedForDeletion) this.collisions.splice(index, 1)
             })
+            //filtering items
+            this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion)
+            this.floatingMessages = this.floatingMessages.filter(message => !message.markedForDeletion)
+            this.particles = this.particles.filter(particle => !particle.markedForDeletion)
+            this.collisions = this.collisions.filter(collision => !collision.markedForDeletion)
         }
         draw(context) {
             this.background.draw(context)
@@ -73,6 +89,9 @@ window.addEventListener('load', function () {
             this.collisions.forEach(collision => {
                 collision.draw(context)
             })
+            this.floatingMessages.forEach(message => {
+                message.draw(context)
+            })
             this.UI.draw(context)
         }
         addEnemy() {
@@ -85,14 +104,13 @@ window.addEventListener('load', function () {
     const game = new Game(canvas.width, canvas.height)
     console.log(game);
     let lastTime = 0
-
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime
         lastTime = timeStamp
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         game.update(deltaTime)
         game.draw(ctx)
-        requestAnimationFrame(animate)
+        if (!game.gameOver) requestAnimationFrame(animate)
     }
     animate(0)
 })

@@ -112,11 +112,12 @@ export class Rolling extends State {
             this.game.player.setState(states.RUNNING, 1)
         } else if (!input.includes('Shift') && !this.game.player.onGround()) {
             this.game.player.setState(states.FALLING, 1)
-        } else if (input.includes('Shift') && input.includes('ArrowUp') && this.game.player.onGround()) {
+        } else if (input.includes('Shift') && input.includes('ArrowUp') && !input.includes('ArrowDown') && this.game.player.onGround()) {
             this.game.player.vy -= 27    
-        } else if (input.includes('ArrowDown')) {
+        } else if (input.includes('ArrowDown') && !this.game.player.onGround()) {
             this.game.player.setState(states.DIVING, 0)
         }
+
     }
 }
 
@@ -137,8 +138,8 @@ export class Diving extends State {
             for (let i = 0; i < 30; i++) {
                 this.game.particles.unshift(new Splash(this.game, this.game.player.x + this.game.player.width * 0.5, this.game.player.y + this.game.player.height * 0.5))
             }
-        } else if (input.includes('Shift') && !this.game.player.onGround()) {
-            this.game.player.setState(states.ROLLING, 1)
+        } else if (input.includes('Shift') && !input.includes('ArrowDown') && !this.game.player.onGround()) {
+            this.game.player.setState(states.ROLLING, 2)
         } 
     }
 }
