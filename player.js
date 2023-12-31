@@ -1,6 +1,7 @@
-import { Falling, Jumping, Running, Sitting, Rolling, Diving, Hit } from './playerStates.js'
+import { Falling, Jumping, Running, Sitting, Rolling, Diving, Hit, GameOver } from './playerStates.js'
 import { CollisionAnimation } from './collisionAnimation.js'
 import { FloatingMessages } from './floatingMessages.js'
+import { Splash } from './particles.js'
 
 export class Player {
     constructor(game) {
@@ -20,7 +21,7 @@ export class Player {
         this.frameTimer = 0
         this.speed = 0
         this.maxSpeed = 10
-        this.states = [new Sitting(this.game), new Running(this.game), new Jumping(this.game), new Falling(this.game), new Rolling(this.game), new Diving(this.game), new Hit(this.game)]
+        this.states = [new Sitting(this.game), new Running(this.game), new Jumping(this.game), new Falling(this.game), new Rolling(this.game), new Diving(this.game), new Hit(this.game), new GameOver(this.game)]
         this.currentState = null
     }
     update(input, deltaTime) {
@@ -41,6 +42,8 @@ export class Player {
         //vertical boundaries
         if (this.y + this.height > this.game.height - this.game.groundMargin) this.y = this.game.height - this.game.groundMargin - this.height
         //sprite animation
+        //if state is game over increase the frameinterval to make the dying animation slower
+        if (this.currentState === this.states[7]) this.frameInterval += 2.5
         if (this.frameTimer > this.frameInterval) {
             this.frameTimer = 0
             if (this.frameX < this.maxFrame) this.frameX++
@@ -63,6 +66,7 @@ export class Player {
         this.currentState.enter()
     }
     checkCollision() {
+        //with enemies
         this.game.enemies.forEach(enemy => {
             if (enemy.x < this.x + this.width &&
                 enemy.x + enemy.width > this.x &&
@@ -72,12 +76,29 @@ export class Player {
                 this.game.collisions.push(new CollisionAnimation(this.game, enemy.x + enemy.width * 0.5, enemy.y + enemy.height * 0.5))
                 if (this.currentState === this.states[4] ||
                     this.currentState === this.states[5]) {
-                        this.game.score++
-                        this.game.floatingMessages.push(new FloatingMessages('+1', enemy.x, enemy.y, 150, 50) )
+                    this.game.score++
+                    this.game.floatingMessages.push(new FloatingMessages('+1', enemy.x, enemy.y, 150, 50))
                 } else {
-                    //go into HIT state
-                    this.setState(6, 0)
+                    // //go into HIT / game over state
                     this.game.lives--
+                    if (this.game.lives <= 0) {
+                        this.setState(7, 0)
+                    } else {
+                        this.setState(6, 0)
+                    }
+                }
+            }
+        })
+        //with bone
+        this.game.bones.forEach(bone => {
+            if (bone.x < this.x + this.width &&
+                bone.x + bone.width > this.x &&
+                bone.y < this.y + this.height &&
+                bone.y + bone.height > this.y) {
+                bone.markedForDeletion = true
+                this.game.powerBar = 100
+                for (let i = 0; i < 30; i++) {
+                    this.game.particles.unshift(new Splash(this.game, bone.x + bone.width * 0.5, bone.y + bone.height * 0.5, 'bone'))
                 }
             }
         })

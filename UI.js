@@ -37,6 +37,14 @@ export class UI {
                 context.fillText('Nope.. better luck next time!', this.game.width * 0.5, this.game.height * 0.5 + 20)
             }
         }
+        context.fillStyle = 'rgba(255, 255, 255, 0.4)'
+        context.fillRect(this.game.width * 0.5 - 85 , 50, this.game.powerBar * 2, 35)
+        context.strokeStyle = 'rgba(0, 0, 0, 0.7)'
+        context.lineWidth = 3
+        context.strokeRect(this.game.width * 0.5 - 85 , 50, 200, 35)
         context.restore()
+        //drawing bar
+        
+        
     }
 }

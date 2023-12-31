@@ -31,7 +31,7 @@ export class Dust extends Particle {
 }
 
 export class Splash extends Particle {
-    constructor(game, x, y) {
+    constructor(game, x, y, img) {
         super(game)
         this.size = Math.random() * 100 + 100
         this.x = x - this.size * 0.3
@@ -39,7 +39,7 @@ export class Splash extends Particle {
         this.speedX = Math.random() * 8 - 5
         this.speedY = Math.random() * 2 + 2
         this.gravity = 0
-        this.image = document.getElementById('fire')
+        this.image = document.getElementById(img)
     }
     update() {
         super.update()
